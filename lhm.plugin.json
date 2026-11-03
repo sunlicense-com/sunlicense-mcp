@@ -1,0 +1,2082 @@
+{
+  "identifier": "sunlicense",
+  "name": "SunLicense",
+  "version": "0.7.1",
+  "author": "SunDevs",
+  "authorUrl": "https://sunlicense.com",
+  "category": "developer",
+  "cloudEndpoint": "https://api.sunlicense.com/mcp",
+  "description": "SunLicense issues and checks license keys for software people sell: Minecraft plugins, FiveM resources, Discord bots, desktop apps and games. Its MCP server lets an AI assistant run it: issue, suspend and revoke licenses, free machines, block leaked keys, manage customers, build automations, read license-check stats and product analytics, obfuscate builds and add a license check to your code. Sign in with OAuth; every plan includes it (Free: 50 tool calls a day).",
+  "homepage": "https://sunlicense.com/?ref=lobehub",
+  "icon": "https://sunlicense.com/img/logo-512.png",
+  "tags": [
+    "licensing",
+    "license-keys",
+    "software-licensing",
+    "drm",
+    "saas",
+    "developer-tools",
+    "minecraft",
+    "fivem"
+  ],
+  "tools": [
+    {
+      "name": "list_products",
+      "description": "List the organization's products.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List products"
+      }
+    },
+    {
+      "name": "create_product",
+      "description": "Create a product (the app or plugin being licensed). Counts toward the plan's product limit. Then create a policy for it with create_policy.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "description": "one line about it, for the team",
+            "type": "string"
+          },
+          "name": {
+            "description": "the product's name, e.g. 'Acme Editor'",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Create a product"
+      }
+    },
+    {
+      "name": "delete_product",
+      "description": "Move a product to the Trash with its policies and licenses: those licenses stop working at once (validation answers as for an unknown key). It can be restored for 30 days with restore_from_trash. Confirm with the user first, saying how many licenses go with it.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "product": {
+            "description": "product id, code or name; leave empty for every product",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Delete a product"
+      }
+    },
+    {
+      "name": "list_policies",
+      "description": "List policies (license templates: type, machine limit, duration), for every product or one. maxMachines or durationDays null means unlimited.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "product": {
+            "description": "product id, code or name; leave empty for every product",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List policies"
+      }
+    },
+    {
+      "name": "create_policy",
+      "description": "Create a policy for a product: a plan or tier customers buy (e.g. Pro, Lite, Trial), i.e. the license template with its type, machine limit, IP limit and duration. Licenses are issued from policies (issue_license). maxMachines, maxIps or durationDays left out means unlimited.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "durationDays": {
+            "description": "days a license lasts after issue; needed for SUBSCRIPTION and TRIAL",
+            "maximum": 36500,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "maxIps": {
+            "description": "IP addresses one license may be used from (e.g. 1 for one server; IPv6 counts per /64); unlimited when left out",
+            "maximum": 10000,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "maxMachines": {
+            "description": "machines one license may run on at once; unlimited when left out",
+            "maximum": 10000,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "name": {
+            "description": "the plan or tier's name, e.g. 'Pro' or 'Trial'",
+            "type": "string"
+          },
+          "product": {
+            "description": "product id, code or name",
+            "type": "string"
+          },
+          "type": {
+            "description": "PERPETUAL (never expires), SUBSCRIPTION (expires durationDays after issue) or TRIAL (a time-boxed evaluation). Default: SUBSCRIPTION with durationDays, else PERPETUAL",
+            "enum": [
+              "PERPETUAL",
+              "SUBSCRIPTION",
+              "TRIAL"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "product",
+          "name"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Create a policy (plan/tier)"
+      }
+    },
+    {
+      "name": "update_policy",
+      "description": "Change a policy (plan/tier): name, type, machine limit, IP limit or duration. This changes every license on the policy, existing ones included, within seconds. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "durationDays": {
+            "description": "a new duration in days",
+            "maximum": 36500,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "maxIps": {
+            "description": "a new IP limit; 0 removes it",
+            "maximum": 10000,
+            "minimum": 0,
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "maxMachines": {
+            "description": "a new machine limit",
+            "maximum": 10000,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "name": {
+            "description": "a new name",
+            "type": "string"
+          },
+          "policy": {
+            "description": "policy id or name",
+            "type": "string"
+          },
+          "product": {
+            "description": "product id, code or name, when the policy name exists in several products",
+            "type": "string"
+          },
+          "type": {
+            "description": "a new type",
+            "enum": [
+              "PERPETUAL",
+              "SUBSCRIPTION",
+              "TRIAL"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "policy"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Change a policy (plan/tier)"
+      }
+    },
+    {
+      "name": "delete_policy",
+      "description": "Move a policy to the Trash with the licenses issued from it: they stop working at once. It can be restored for 30 days with restore_from_trash. Confirm with the user first, saying how many licenses go with it.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "policy": {
+            "description": "policy id or name",
+            "type": "string"
+          },
+          "product": {
+            "description": "product id, code or name, when the policy name exists in several products",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policy"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Delete a policy"
+      }
+    },
+    {
+      "name": "list_licenses",
+      "description": "List or search licenses (newest first). Keys are masked; use reveal_license_key for one full key.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "description": "how many to return (25 when left out)",
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "product": {
+            "description": "only this product (id, code or name)",
+            "type": "string"
+          },
+          "search": {
+            "description": "the start of a key, a customer email or a name",
+            "type": "string"
+          },
+          "status": {
+            "description": "only licenses with this status",
+            "enum": [
+              "ACTIVE",
+              "SUSPENDED",
+              "REVOKED"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List licenses"
+      }
+    },
+    {
+      "name": "get_license",
+      "description": "One license with its machines and recent license checks. The key is masked.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "description": "the license id, key, the start of its key, or the customer's email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "license"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Show a license"
+      }
+    },
+    {
+      "name": "issue_license",
+      "description": "Issue a new license from a policy to a customer. Counts toward the plan's license limit. The answer has the masked key; use reveal_license_key if the user wants the full one. With emailKey the customer gets the key by email, like a license issued in the dashboard: ask the user whether to send it.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "customerEmail": {
+            "description": "the buyer's email address",
+            "format": "email",
+            "type": "string"
+          },
+          "customerName": {
+            "description": "the buyer's name",
+            "type": "string"
+          },
+          "emailKey": {
+            "description": "also email the key to the customer, in the organization's brand (as the dashboard does); ask the user first. Default false",
+            "type": "boolean"
+          },
+          "policy": {
+            "description": "policy id or name (the license template: machines, duration)",
+            "type": "string"
+          },
+          "product": {
+            "description": "product id, code or name, when the policy name exists in several products",
+            "type": "string"
+          }
+        },
+        "required": [
+          "policy",
+          "customerEmail"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Issue a license"
+      }
+    },
+    {
+      "name": "suspend_license",
+      "description": "Suspend a license: the customer's app answers SUSPENDED until it is reinstated. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "description": "the license id, key, the start of its key, or the customer's email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "license"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Suspend a license"
+      }
+    },
+    {
+      "name": "reinstate_license",
+      "description": "Reinstate a suspended license (revoked ones stay revoked).",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "description": "the license id, key, the start of its key, or the customer's email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "license"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Reinstate a license"
+      }
+    },
+    {
+      "name": "revoke_license",
+      "description": "Revoke a license for good: the customer's app answers REVOKED within seconds and it can't be undone. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "description": "the license id, key, the start of its key, or the customer's email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "license"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Revoke a license"
+      }
+    },
+    {
+      "name": "delete_license",
+      "description": "Move a license to the Trash: it stops working at once (validation answers as for an unknown key) and can be restored for 30 days with restore_from_trash. Unlike revoke_license, nothing is announced and it can come back. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "description": "the license id, key, the start of its key, or the customer's email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "license"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Delete a license"
+      }
+    },
+    {
+      "name": "reveal_license_key",
+      "description": "Show one license's full key. Only when the user asks for it: full keys are secrets to their customers.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "description": "the license id, key, the start of its key, or the customer's email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "license"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Reveal a license key"
+      }
+    },
+    {
+      "name": "rotate_license_key",
+      "description": "Give a license a new key: the same license and machines, the old key refused from now on, and the customer emailed the new one. For a key that leaked or was shared. The answer has the new key masked. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "description": "the license id, key, the start of its key, or the customer's email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "license"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Give a license a new key"
+      }
+    },
+    {
+      "name": "offline_license_file",
+      "description": "The signed offline license file (.lic) for an active license, for apps that run without internet. Needs Lite or Standard. The file embeds the license key: give it only to its customer, never commit it.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "description": "the license id, key, the start of its key, or the customer's email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "license"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Offline license file"
+      }
+    },
+    {
+      "name": "list_machines",
+      "description": "List the machines a license is activated on (active and freed), with fingerprints, hostnames and when each was last seen.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "description": "the license id, key, the start of its key, or the customer's email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "license"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List a license's machines"
+      }
+    },
+    {
+      "name": "deactivate_machine",
+      "description": "Free a machine slot on a license, e.g. when the customer moved to a new PC. The app on that machine has to activate again. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "description": "the license (id, key, key start or customer email); optional when machine is a machine id",
+            "type": "string"
+          },
+          "machine": {
+            "description": "the machine's id, fingerprint or hostname, from list_machines",
+            "type": "string"
+          }
+        },
+        "required": [
+          "machine"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Deactivate a machine"
+      }
+    },
+    {
+      "name": "list_license_ips",
+      "description": "List the IP addresses a license is used from when its policy limits IPs (maxIps): which hold a slot, their country, when each was first and last seen and when it frees itself.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "license": {
+            "description": "the license id, key, the start of its key, or the customer's email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "license"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List a license's IP addresses"
+      }
+    },
+    {
+      "name": "release_license_ip",
+      "description": "Free an IP address's slot on a license, e.g. when the customer moved to a new server. The license then works from a new address. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "ip": {
+            "description": "the address or its id, from list_license_ips",
+            "type": "string"
+          },
+          "license": {
+            "description": "the license (id, key, key start or customer email)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "license",
+          "ip"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Free a license's IP address"
+      }
+    },
+    {
+      "name": "list_customers",
+      "description": "List or search the organization's customers (license holders).",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "description": "how many to return (25 when left out)",
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "search": {
+            "description": "email or name (contains), Discord id, marketplace buyer id or the start of a key",
+            "type": "string"
+          },
+          "status": {
+            "description": "only customers with this status",
+            "enum": [
+              "ACTIVE",
+              "BLOCKED"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List customers"
+      }
+    },
+    {
+      "name": "create_customer",
+      "description": "Add a customer (license holder) by email and/or name. issue_license also creates one from the email when needed.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "email": {
+            "description": "the customer's email (an email or a name is needed)",
+            "format": "email",
+            "type": "string"
+          },
+          "name": {
+            "description": "the customer's name",
+            "type": "string"
+          },
+          "notes": {
+            "description": "notes for the team",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Add a customer"
+      }
+    },
+    {
+      "name": "update_customer",
+      "description": "Change a customer's email, name, notes or Discord link. Fields left out stay as they are; an empty string clears one. When the new email belongs to another customer, merge the two with merge_customers instead.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "customer": {
+            "description": "the customer's id or email",
+            "type": "string"
+          },
+          "discordUserId": {
+            "description": "the customer's Discord user id; empty string unlinks it",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "description": "a new email; empty string clears it",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "description": "a new name; empty string clears it",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notes": {
+            "description": "new notes; empty string clears them",
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "required": [
+          "customer"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Edit a customer"
+      }
+    },
+    {
+      "name": "block_customer",
+      "description": "Block a customer: every active license they hold is suspended (their apps answer SUSPENDED) until unblock_customer. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "customer": {
+            "description": "the customer's id or email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Block a customer"
+      }
+    },
+    {
+      "name": "unblock_customer",
+      "description": "Unblock a customer and reinstate the licenses the block suspended (not ones suspended by hand).",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "customer": {
+            "description": "the customer's id or email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Unblock a customer"
+      }
+    },
+    {
+      "name": "merge_customers",
+      "description": "Merge a duplicate customer into another: its licenses, marketplace and Discord accounts move over, empty fields are filled in, and the duplicate is deleted. Can't be undone. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "description": "the duplicate (id or email): its licenses and accounts move to 'into', then it is deleted",
+            "type": "string"
+          },
+          "into": {
+            "description": "the customer to keep (id or email)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "into",
+          "from"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Merge two customers"
+      }
+    },
+    {
+      "name": "delete_customer",
+      "description": "Move a customer to the Trash with their licenses: those stop working at once. They can be restored for 30 days with restore_from_trash. To combine duplicates use merge_customers instead. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "customer": {
+            "description": "the customer's id or email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "customer"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Delete a customer"
+      }
+    },
+    {
+      "name": "list_access_rules",
+      "description": "List blacklist and exclusion rules with how often each matched.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "description": "only this kind; both when left out",
+            "enum": [
+              "BLACKLIST",
+              "EXCLUSION"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List access rules"
+      }
+    },
+    {
+      "name": "add_access_rule",
+      "description": "Add a blacklist rule (matching license checks answer BLACKLISTED) or an exclusion (matching checks pass without using machine slots, e.g. the developer's own machine or IP). Applies to the whole organization unless a product or license is given. Counts toward the plan's access-rule limit; country rules need Lite or Standard.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "expiresInDays": {
+            "description": "stop matching after this many days; never when left out",
+            "maximum": 3650,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "ignoreStatus": {
+            "description": "exclusions only: also let suspended and expired licenses through",
+            "type": "boolean"
+          },
+          "kind": {
+            "description": "BLACKLIST (refuse matching checks with BLACKLISTED) or EXCLUSION (let them through without machine limits, e.g. the developer's own machine)",
+            "enum": [
+              "BLACKLIST",
+              "EXCLUSION"
+            ],
+            "type": "string"
+          },
+          "license": {
+            "description": "apply to this license only (id, key, key start or email)",
+            "type": "string"
+          },
+          "note": {
+            "description": "why, for the team",
+            "type": "string"
+          },
+          "product": {
+            "description": "apply to this product only (id, code or name)",
+            "type": "string"
+          },
+          "type": {
+            "description": "IP (address or CIDR range), HWID (machine id as the app sends it), COUNTRY (two-letter ISO code, blacklist only) or CUSTOMER (customer id, blacklist only)",
+            "enum": [
+              "IP",
+              "HWID",
+              "COUNTRY",
+              "CUSTOMER"
+            ],
+            "type": "string"
+          },
+          "value": {
+            "description": "the address, range, machine id, country code or customer id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "type",
+          "value"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Add a blacklist or exclusion rule"
+      }
+    },
+    {
+      "name": "delete_access_rule",
+      "description": "Delete a blacklist or exclusion rule; blocked machines get back in, excluded ones count against limits again. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "description": "the rule's id, from list_access_rules",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Delete an access rule"
+      }
+    },
+    {
+      "name": "list_api_keys",
+      "description": "List the organization's API keys (slk_…) by name and prefix; full keys are never stored, so they can't be shown.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List API keys"
+      }
+    },
+    {
+      "name": "create_api_key",
+      "description": "Create an API key (slk_…) for an app to validate licenses with. The key is shown once, here; tell the user to store it as a secret (an environment variable or config file), never in source control.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "what the key is for, e.g. 'Paper plugin' or 'CI'",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Create an API key"
+      }
+    },
+    {
+      "name": "revoke_api_key",
+      "description": "Revoke an API key: every app using it stops validating licenses with it at once. Can't be undone; create a new key first if the app still needs one. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "apiKey": {
+            "description": "the key's id, name, or the key itself (only its start is compared)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "apiKey"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Revoke an API key"
+      }
+    },
+    {
+      "name": "sign_out_member",
+      "description": "Sign a team member out everywhere: their sessions end and they have to sign in again. For a sign-in that wasn't theirs. Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "member": {
+            "description": "the member's user id or email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "member"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Sign a member out"
+      }
+    },
+    {
+      "name": "automation_catalog",
+      "description": "What automations can be built from: every trigger with its data fields (CEL variables and {{placeholders}}), every action with its settings, the limits, and how a graph is written. Call it before drafting an automation; with trigger, that trigger's fields with help and example data.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "trigger": {
+            "description": "a trigger's key (e.g. validation.ip.new) or title: its fields with help and an example of its data. Leave out for the overview of every trigger and action",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Automation building blocks"
+      }
+    },
+    {
+      "name": "list_automations",
+      "description": "List the organization's automations (trigger → conditions → actions rules that act on license events): on or off, problems, last run, runs this month against the plan.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List automations"
+      }
+    },
+    {
+      "name": "get_automation",
+      "description": "One automation with its graph (nodes and edges) and problems, to explain it or to change it with update_automation.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "automation": {
+            "description": "the automation's id or name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "automation"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Show an automation"
+      }
+    },
+    {
+      "name": "validate_automation",
+      "description": "Check a graph without saving it: unknown types, missing settings, CEL type errors, broken edges. Fix every problem; with none, save it with create_automation. A graph is {\"nodes\":[…],\"edges\":[…]}, a tree from exactly one trigger. Nodes: {\"id\",\"kind\",\"type\",\"config\"}; kind is \"trigger\" (type: a trigger key, id \"trigger\"), \"action\" (type: an action key) or \"condition\" (no type; config {\"cel\": \"<CEL expression over the trigger's fields>\"}). Edges: {\"from\",\"to\"} in the order nodes run; edges leaving a condition carry \"branch\": \"true\" (Yes) or \"false\" (No). Settings marked placeholders accept {{field.key}} from the trigger's fields, e.g. \"{{license.id}}\". CEL is typed: compare ints with ints (license.machinesUsed > 2), doubles with doubles (2.0), timestamps with timestamp(\"2026-01-01T00:00:00Z\") or now ± duration(\"72h\"); string fields with options only take those values.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "graph": {
+            "additionalProperties": false,
+            "properties": {
+              "edges": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "branch": {
+                      "description": "only on edges leaving a condition: true = Yes, false = No",
+                      "enum": [
+                        "true",
+                        "false"
+                      ],
+                      "type": "string"
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "nodes": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "config": {
+                      "additionalProperties": true,
+                      "description": "the node's settings by key (automation_catalog lists them); a condition's is {\"cel\": \"…\"}",
+                      "type": "object"
+                    },
+                    "id": {
+                      "description": "unique in the graph: trigger, c1, a1…",
+                      "type": "string"
+                    },
+                    "kind": {
+                      "enum": [
+                        "trigger",
+                        "condition",
+                        "action"
+                      ],
+                      "type": "string"
+                    },
+                    "label": {
+                      "description": "a short name shown on the canvas instead of the type's title",
+                      "type": "string"
+                    },
+                    "type": {
+                      "description": "the trigger's or action's key from automation_catalog; none for a condition",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              }
+            },
+            "required": [
+              "nodes",
+              "edges"
+            ],
+            "type": "object"
+          }
+        },
+        "required": [
+          "graph"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Check an automation"
+      }
+    },
+    {
+      "name": "create_automation",
+      "description": "Save a new automation. It is always saved switched off (a draft), with any problems listed, so nothing runs until the user switches it on. Check it with validate_automation first; afterwards test it with test_automation. Counts toward the plan's automations. A graph is {\"nodes\":[…],\"edges\":[…]}, a tree from exactly one trigger. Nodes: {\"id\",\"kind\",\"type\",\"config\"}; kind is \"trigger\" (type: a trigger key, id \"trigger\"), \"action\" (type: an action key) or \"condition\" (no type; config {\"cel\": \"<CEL expression over the trigger's fields>\"}). Edges: {\"from\",\"to\"} in the order nodes run; edges leaving a condition carry \"branch\": \"true\" (Yes) or \"false\" (No). Settings marked placeholders accept {{field.key}} from the trigger's fields, e.g. \"{{license.id}}\". CEL is typed: compare ints with ints (license.machinesUsed > 2), doubles with doubles (2.0), timestamps with timestamp(\"2026-01-01T00:00:00Z\") or now ± duration(\"72h\"); string fields with options only take those values.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "description": "one or two sentences for the team (at most 500 characters)",
+            "type": "string"
+          },
+          "graph": {
+            "additionalProperties": false,
+            "properties": {
+              "edges": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "branch": {
+                      "description": "only on edges leaving a condition: true = Yes, false = No",
+                      "enum": [
+                        "true",
+                        "false"
+                      ],
+                      "type": "string"
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "nodes": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "config": {
+                      "additionalProperties": true,
+                      "description": "the node's settings by key (automation_catalog lists them); a condition's is {\"cel\": \"…\"}",
+                      "type": "object"
+                    },
+                    "id": {
+                      "description": "unique in the graph: trigger, c1, a1…",
+                      "type": "string"
+                    },
+                    "kind": {
+                      "enum": [
+                        "trigger",
+                        "condition",
+                        "action"
+                      ],
+                      "type": "string"
+                    },
+                    "label": {
+                      "description": "a short name shown on the canvas instead of the type's title",
+                      "type": "string"
+                    },
+                    "type": {
+                      "description": "the trigger's or action's key from automation_catalog; none for a condition",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              }
+            },
+            "required": [
+              "nodes",
+              "edges"
+            ],
+            "type": "object"
+          },
+          "name": {
+            "description": "what it does, e.g. 'Suspend shared licenses' (at most 80 characters)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "graph"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Create an automation (switched off)"
+      }
+    },
+    {
+      "name": "update_automation",
+      "description": "Change an automation's name, description or whole graph. Nodes that keep their id keep their place on the canvas. An automation that is switched on must stay free of problems, and the change applies to its next run: confirm with the user first. A graph is {\"nodes\":[…],\"edges\":[…]}, a tree from exactly one trigger. Nodes: {\"id\",\"kind\",\"type\",\"config\"}; kind is \"trigger\" (type: a trigger key, id \"trigger\"), \"action\" (type: an action key) or \"condition\" (no type; config {\"cel\": \"<CEL expression over the trigger's fields>\"}). Edges: {\"from\",\"to\"} in the order nodes run; edges leaving a condition carry \"branch\": \"true\" (Yes) or \"false\" (No). Settings marked placeholders accept {{field.key}} from the trigger's fields, e.g. \"{{license.id}}\". CEL is typed: compare ints with ints (license.machinesUsed > 2), doubles with doubles (2.0), timestamps with timestamp(\"2026-01-01T00:00:00Z\") or now ± duration(\"72h\"); string fields with options only take those values.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "automation": {
+            "description": "the automation's id or name",
+            "type": "string"
+          },
+          "description": {
+            "description": "a new description; empty string clears it",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "graph": {
+            "additionalProperties": false,
+            "description": "the whole new graph (get_automation shows the current one); left out keeps it",
+            "properties": {
+              "edges": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "branch": {
+                      "description": "only on edges leaving a condition: true = Yes, false = No",
+                      "enum": [
+                        "true",
+                        "false"
+                      ],
+                      "type": "string"
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "nodes": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "config": {
+                      "additionalProperties": true,
+                      "description": "the node's settings by key (automation_catalog lists them); a condition's is {\"cel\": \"…\"}",
+                      "type": "object"
+                    },
+                    "id": {
+                      "description": "unique in the graph: trigger, c1, a1…",
+                      "type": "string"
+                    },
+                    "kind": {
+                      "enum": [
+                        "trigger",
+                        "condition",
+                        "action"
+                      ],
+                      "type": "string"
+                    },
+                    "label": {
+                      "description": "a short name shown on the canvas instead of the type's title",
+                      "type": "string"
+                    },
+                    "type": {
+                      "description": "the trigger's or action's key from automation_catalog; none for a condition",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              }
+            },
+            "required": [
+              "nodes",
+              "edges"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "name": {
+            "description": "a new name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "automation"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Change an automation"
+      }
+    },
+    {
+      "name": "test_automation",
+      "description": "Test-run an automation without side effects: conditions are evaluated for real, actions are only described (WOULD), nothing is changed or sent. Uses the trigger's example data unless given payload, a past run (fromRun) or the newest real event (latest); graph tests unsaved changes. Returns each step it reached. Show the user the steps before suggesting to switch it on.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "automation": {
+            "description": "the automation's id or name",
+            "type": "string"
+          },
+          "fromRun": {
+            "description": "a past run's id (list_automation_runs): test with the data of that real event",
+            "type": "string"
+          },
+          "graph": {
+            "additionalProperties": false,
+            "description": "test these unsaved changes instead of the saved graph",
+            "properties": {
+              "edges": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "branch": {
+                      "description": "only on edges leaving a condition: true = Yes, false = No",
+                      "enum": [
+                        "true",
+                        "false"
+                      ],
+                      "type": "string"
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              },
+              "nodes": {
+                "items": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "config": {
+                      "additionalProperties": true,
+                      "description": "the node's settings by key (automation_catalog lists them); a condition's is {\"cel\": \"…\"}",
+                      "type": "object"
+                    },
+                    "id": {
+                      "description": "unique in the graph: trigger, c1, a1…",
+                      "type": "string"
+                    },
+                    "kind": {
+                      "enum": [
+                        "trigger",
+                        "condition",
+                        "action"
+                      ],
+                      "type": "string"
+                    },
+                    "label": {
+                      "description": "a short name shown on the canvas instead of the type's title",
+                      "type": "string"
+                    },
+                    "type": {
+                      "description": "the trigger's or action's key from automation_catalog; none for a condition",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "kind"
+                  ],
+                  "type": "object"
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              }
+            },
+            "required": [
+              "nodes",
+              "edges"
+            ],
+            "type": [
+              "null",
+              "object"
+            ]
+          },
+          "latest": {
+            "description": "test with the newest real event of this trigger in the organization (from any automation's runs)",
+            "type": "boolean"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "description": "the trigger's data to test with, flat keys as automation_catalog lists them (e.g. {\"license.status\": \"SUSPENDED\"}); left-out fields come from the example",
+            "type": "object"
+          }
+        },
+        "required": [
+          "automation"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Test-run an automation"
+      }
+    },
+    {
+      "name": "enable_automation",
+      "description": "Switch an automation on: from then on it runs on every trigger event and its actions change real licenses and message real customers. Only when the user asked for it, after a test run; it must have no problems, and the member needs the permissions its actions use.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "automation": {
+            "description": "the automation's id or name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "automation"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Switch an automation on"
+      }
+    },
+    {
+      "name": "disable_automation",
+      "description": "Switch an automation off: it stops running on new events (runs already queued finish). Confirm with the user first.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "automation": {
+            "description": "the automation's id or name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "automation"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Switch an automation off"
+      }
+    },
+    {
+      "name": "list_automation_runs",
+      "description": "An automation's recent runs, newest first: live runs (real events) and test runs, with status and why one was skipped. A live run's id can be passed to test_automation as fromRun.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "automation": {
+            "description": "the automation's id or name",
+            "type": "string"
+          },
+          "limit": {
+            "description": "how many to return, newest first (10 when left out)",
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "automation"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List an automation's runs"
+      }
+    },
+    {
+      "name": "licensing_stats",
+      "description": "Licensing numbers: products, policies, licenses and active licenses; with a range (24h, 7d, 30d) also licenses issued and revoked over time and per product and policy (that report needs Lite or Standard).",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "range": {
+            "description": "a report over this period; just today's totals when left out",
+            "enum": [
+              "24h",
+              "7d",
+              "30d"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Licensing stats"
+      }
+    },
+    {
+      "name": "validation_stats",
+      "description": "License-check numbers: active machines, activations and checks today; with a range (24h, 7d, 30d) also valid and rejected checks over time, answers by code, the busiest licenses (keys masked) and countries.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "range": {
+            "description": "a report over this period; just today's totals when left out",
+            "enum": [
+              "24h",
+              "7d",
+              "30d"
+            ],
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Validation stats"
+      }
+    },
+    {
+      "name": "integration_status",
+      "description": "What's set up in the organization (plan, products, policies, licenses, API keys, license checks today, service health, today's MCP calls) and what to do next.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Integration status"
+      }
+    },
+    {
+      "name": "mcp_usage",
+      "description": "How many SunLicense MCP tool calls the organization has used today and how many are left (limit null: no daily cap). This check itself doesn't count.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "MCP calls today"
+      }
+    },
+    {
+      "name": "list_trash",
+      "description": "List what is in the Trash (deleted products, policies, licenses and customers the member may see), with what went with each and the days left before it is deleted for good.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List the Trash"
+      }
+    },
+    {
+      "name": "restore_from_trash",
+      "description": "Restore a deleted item with everything that was deleted with it; its licenses validate again within seconds. Fails while something it belongs to is still in the Trash (restore that first).",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "item": {
+            "description": "the id from list_trash, or the deleted item's name (a license by the start of its key)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "item"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Restore from the Trash"
+      }
+    },
+    {
+      "name": "analytics_summary",
+      "description": "Product analytics: active installs (reported in the last hour), licensed vs unlicensed, installs today and in 30 days, per product or for every product, with a link to the product's Analytics tab. With days, also distinct installs per day.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "description": "also list installs per day over this many days (1 to 365, cut to the plan's history)",
+            "maximum": 365,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "product": {
+            "description": "product id, code or name; empty = every product's active installs",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Product analytics summary"
+      }
+    },
+    {
+      "name": "analytics_breakdown",
+      "description": "Product analytics: a product's installs by one metric (OS, OS version, Java or other runtime versions, server platform and its versions, product versions, countries, CPU cores, locale, SDK, licensed vs unlicensed, feature usage or a custom chart), now (the last complete hour) or averaged per day over a range, with a link to the chart. Answers questions like \"which Java versions do my servers run?\" or \"is anyone still on 1.2?\".",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "description": "average installs per day over this many days (1 to 365, cut to the plan's history); empty = the last complete hour",
+            "maximum": 365,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "limit": {
+            "description": "how many values (1 to 100); default 20, the rest add up in otherInstalls",
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "metric": {
+            "description": "what to break installs down by: installs, licensed, productVersion, os, osVersion, arch, cores, locale, runtime, runtimeVersion (e.g. Java versions), platform, platformVersion (e.g. Paper versions), country, sdk, features, or chart:<id> for a custom chart (chart:<id>:inner for a drilldown chart's inner values)",
+            "pattern": "^(installs|licensed|productVersion|os|osVersion|arch|cores|locale|runtime|runtimeVersion|platform|platformVersion|country|sdk|features|chart:[a-z0-9][a-z0-9._-]{0,47}(:inner)?)$",
+            "type": "string"
+          },
+          "parent": {
+            "description": "only the versions of one value, for osVersion (Linux), runtimeVersion (java), platformVersion (paper) or chart:<id>:inner (an outer value)",
+            "type": "string"
+          },
+          "product": {
+            "description": "product id, code or name",
+            "type": "string"
+          },
+          "source": {
+            "description": "all installs (default), licensed or unlicensed ones",
+            "enum": [
+              "all",
+              "licensed",
+              "unlicensed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "product",
+          "metric"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Product analytics breakdown"
+      }
+    },
+    {
+      "name": "analytics_features",
+      "description": "Product analytics: which of a product's features its installs use (reported by the SDK's feature counters): installs per day on average, uses in the range (default 30 days), first and last seen. Feature usage needs Lite or Standard.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "days": {
+            "description": "days to average over (1 to 365, cut to the plan's history); default 30",
+            "maximum": 365,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "limit": {
+            "description": "how many features (1 to 200); default 50",
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "product": {
+            "description": "product id, code or name",
+            "type": "string"
+          },
+          "source": {
+            "description": "all installs (default), licensed or unlicensed ones",
+            "enum": [
+              "all",
+              "licensed",
+              "unlicensed"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Product feature usage"
+      }
+    },
+    {
+      "name": "obfuscate_file",
+      "description": "Obfuscate a local built file on SunLicense's servers and download the result next to it. The file is read from disk and uploaded straight to SunLicense; it is never shown to the model. The language is detected from the file unless you pass an engine or profile. This waits for the run to finish (it can take a few minutes) and returns the output paths; the exit is an error if the run fails. Needs the obfuscation feature (Lite or Standard).",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "config": {
+            "description": "path to a local raw engine-config file (advanced; runs the config as-is after checks)",
+            "type": "string"
+          },
+          "engine": {
+            "description": "an engine id, overriding the language's default",
+            "type": "string"
+          },
+          "file": {
+            "description": "path to a local built file (.jar, .zip, .js, .lua, .py); read and uploaded to SunLicense, never shown to the model",
+            "type": "string"
+          },
+          "outputDir": {
+            "description": "where to write the outputs; defaults to the input file's folder",
+            "type": "string"
+          },
+          "product": {
+            "description": "a product id, to use that product's linked profile",
+            "type": "string"
+          },
+          "profile": {
+            "description": "a saved profile, by name or id (obfuscation_profiles_list)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Obfuscate a file"
+      }
+    },
+    {
+      "name": "obfuscation_status",
+      "description": "Check a code-obfuscation run by its task id: its status, progress, the latest log lines and (once it has succeeded) the output file names. Read-only.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "task": {
+            "description": "the obfuscation task id, from obfuscate_file",
+            "type": "string"
+          }
+        },
+        "required": [
+          "task"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "Obfuscation run status"
+      }
+    },
+    {
+      "name": "obfuscation_profiles_list",
+      "description": "List the organization's saved code-obfuscation profiles (reused by the dashboard, CLI and downloads). Needs the obfuscation feature (Lite or Standard).",
+      "inputSchema": {
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List obfuscation profiles"
+      }
+    },
+    {
+      "name": "sdk_snippet",
+      "description": "Code that validates a license with an official SunLicense SDK, ready for this server.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "language": {
+            "description": "the SDK: java also for Kotlin and Minecraft (Paper, Spigot), js for Node.js, Electron and TypeScript, dotnet for C#, lua for FiveM",
+            "enum": [
+              "java",
+              "js",
+              "python",
+              "dotnet",
+              "php",
+              "lua",
+              "rust"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "language"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "SDK snippet"
+      }
+    },
+    {
+      "name": "search_docs",
+      "description": "Search the SunLicense documentation (SDKs, marketplace integrations, offline licenses, API, CLI) and return the matching sections with links.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "description": "what to look for, e.g. 'offline license fallback' or 'BuiltByBit placeholder'",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": true,
+        "title": "Search the docs"
+      }
+    }
+  ],
+  "prompts": [
+    {
+      "name": "add_licensing",
+      "description": "Set up SunLicense for the app in this project: product and policy, API key, SDK code, a test license and a test check.",
+      "arguments": [
+        {
+          "name": "language",
+          "description": "the SDK (guessed from the project when left out)"
+        },
+        {
+          "name": "platform",
+          "description": "what the app is, e.g. a Paper plugin, an Electron app, a FiveM script"
+        }
+      ]
+    },
+    {
+      "name": "investigate_license",
+      "description": "Everything about one license: holder, status, machines and recent checks, with suggested next steps.",
+      "arguments": [
+        {
+          "name": "license",
+          "description": "its id, key, the start of the key, or the customer's email",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "block_leak",
+      "description": "A key was shared or posted: find the machines using it and propose blacklist rules or a replacement key.",
+      "arguments": [
+        {
+          "name": "license",
+          "description": "the leaked key, the start of it, or its id",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "build_automation",
+      "description": "Describe a rule in plain words; the assistant drafts the automation, checks and test-runs it, and switches it on only when you say so.",
+      "arguments": [
+        {
+          "name": "goal",
+          "description": "what should happen, e.g. 'suspend a license used from more than 3 IPs in a day'",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

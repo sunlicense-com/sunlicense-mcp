@@ -1,0 +1,61 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.sunlicense/mcp",
+  "title": "SunLicense",
+  "description": "Manage software license keys: issue, suspend and revoke licenses, free machines, see customers.",
+  "version": "0.7.1",
+  "websiteUrl": "https://docs.sunlicense.com/guide/remote-mcp",
+  "repository": {
+    "url": "https://github.com/sunlicense-com/sunlicense-mcp",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://sunlicense.com/img/logo-512.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://api.sunlicense.com/mcp"
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@sunlicense/cli",
+      "version": "0.7.1",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "mcp"
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "SUNLICENSE_TOKEN",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string",
+          "description": "A SunLicense personal access token (slp_...): dashboard, Settings, Access tokens."
+        },
+        {
+          "name": "SUNLICENSE_API_KEY",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string",
+          "description": "Optional API key (slk_...) that turns on the test_validate tool."
+        }
+      ]
+    }
+  ]
+}
