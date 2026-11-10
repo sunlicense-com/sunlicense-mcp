@@ -1,0 +1,34 @@
+name: Validate listing
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: JSON files parse
+        run: for f in server.json glama.json mcp.json lhm.plugin.json .cursor-plugin/plugin.json; do python3 -m json.tool "$f" > /dev/null && echo "ok $f"; done
+      - name: server.json matches the MCP Registry schema
+        run: |
+          pip install --quiet check-jsonschema==0.33.0
+          check-jsonschema --schemafile "$(python3 -c 'import json; print(json.load(open("server.json"))["$schema"])')" server.json
+      - name: The hosted server answers like an MCP server (401 with OAuth metadata)
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' -X POST https://api.sunlicense.com/mcp -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"listing-ci","version":"1"}}}')
+          test "$code" = 401 && echo "401 as expected"
+          curl -sf https://api.sunlicense.com/.well-known/oauth-protected-resource/mcp > /dev/null && echo "protected resource metadata ok"
+      - name: The npm package carries the registry name
+        run: |
+          v=$(python3 -c 'import json; print(json.load(open("server.json"))["packages"][0]["version"])')
+          test "$(npm view @sunlicense/cli@$v mcpName)" = "com.sunlicense/mcp" && echo "mcpName ok for $v"
