@@ -3,7 +3,7 @@
   "name": "com.sunlicense/mcp",
   "title": "SunLicense",
   "description": "Manage software license keys: issue, suspend and revoke licenses, free machines, see customers.",
-  "version": "0.7.1",
+  "version": "0.9.0",
   "websiteUrl": "https://docs.sunlicense.com/guide/remote-mcp",
   "repository": {
     "url": "https://github.com/sunlicense-com/sunlicense-mcp",
@@ -29,7 +29,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@sunlicense/cli",
-      "version": "0.7.1",
+      "version": "0.9.0",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"

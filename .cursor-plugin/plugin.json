@@ -1,11 +1,11 @@
 {
   "name": "sunlicense",
   "displayName": "SunLicense",
-  "version": "0.7.1",
+  "version": "0.9.0",
   "description": "Manage software license keys: issue, suspend and revoke licenses, free machines, see customers.",
   "author": {
     "name": "SunDevs",
-    "email": "hello@sundevs.com"
+    "email": "hello@sundevs.net"
   },
   "homepage": "https://docs.sunlicense.com/guide/remote-mcp",
   "repository": "https://github.com/sunlicense-com/sunlicense-mcp",

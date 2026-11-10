@@ -209,6 +209,13 @@ Resources: SDK snippets (`sunlicense://sdk/{language}`) and the docs.
 | `analytics_breakdown` | Product analytics breakdown | reads |
 | `analytics_features` | Product feature usage | reads |
 
+**Product releases**
+
+| Tool | What it does | |
+|---|---|---|
+| `list_releases` | List releases | reads |
+| `create_release` | Create a release | changes, asks first |
+
 **Code obfuscation**
 
 | Tool | What it does | |
@@ -256,7 +263,7 @@ server itself is part of SunLicense Cloud.
 ## Support
 
 [docs.sunlicense.com](https://docs.sunlicense.com) · [Support](https://docs.sunlicense.com/support) ·
-hello@sundevs.com · [status.sunlicense.com](https://status.sunlicense.com)
+hello@sundevs.net · [status.sunlicense.com](https://status.sunlicense.com)
 
 ## License
 

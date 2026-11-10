@@ -1,7 +1,7 @@
 {
   "identifier": "sunlicense",
   "name": "SunLicense",
-  "version": "0.7.1",
+  "version": "0.9.0",
   "author": "SunDevs",
   "authorUrl": "https://sunlicense.com",
   "category": "developer",
@@ -1695,9 +1695,15 @@
     },
     {
       "name": "integration_status",
-      "description": "What's set up in the organization (plan, products, policies, licenses, API keys, license checks today, service health, today's MCP calls) and what to do next.",
+      "description": "What's set up in the organization (plan, products, policies, licenses, API keys, license checks today, service health, today's MCP calls), each product's setup progress (parts done of total, the next part; every part's status for one product) and what to do next.",
       "inputSchema": {
         "additionalProperties": false,
+        "properties": {
+          "product": {
+            "description": "product id, code or name: every setup part's status for it; leave empty for each product's progress",
+            "type": "string"
+          }
+        },
         "type": "object"
       },
       "annotations": {
@@ -1887,6 +1893,82 @@
         "openWorldHint": false,
         "readOnlyHint": true,
         "title": "Product feature usage"
+      }
+    },
+    {
+      "name": "list_releases",
+      "description": "List a product's releases (versions buyers download, newest first) with their files, whether each download carries the buyer's key or mark (watermark), and the download storage used. Read-only. Needs product downloads (Standard).",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "product": {
+            "description": "the product: code, name or id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true,
+        "title": "List releases"
+      }
+    },
+    {
+      "name": "create_release",
+      "description": "Create a release of a product, the version buyers download (Standard). With files (local paths of the built files), it uploads them straight to SunLicense (never through the model), waits for SunLicense's check and publishes the release unless draft is true; buyers can download it at once, so confirm with the user first. Without files it creates a draft and returns the `sunlicense releases create` command that uploads the files into it and publishes it. A draft of the same version gets the files; a published version is refused.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "draft": {
+            "description": "upload without publishing: buyers don't see it until it is published",
+            "type": "boolean"
+          },
+          "files": {
+            "description": "local paths of the built files buyers download (local CLI server only); read and uploaded to SunLicense, never shown to the model",
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "notes": {
+            "description": "release notes (Markdown)",
+            "type": "string"
+          },
+          "product": {
+            "description": "the product: code, name or id",
+            "type": "string"
+          },
+          "title": {
+            "description": "a short title buyers see",
+            "type": "string"
+          },
+          "version": {
+            "description": "the release's version, e.g. 1.4.0",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._+\\- ]{0,39}$",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product",
+          "version"
+        ],
+        "type": "object"
+      },
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false,
+        "readOnlyHint": false,
+        "title": "Create a release"
       }
     },
     {
