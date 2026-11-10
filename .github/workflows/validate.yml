@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - name: JSON files parse
         run: for f in server.json glama.json mcp.json lhm.plugin.json .cursor-plugin/plugin.json; do python3 -m json.tool "$f" > /dev/null && echo "ok $f"; done
       - name: server.json matches the MCP Registry schema
